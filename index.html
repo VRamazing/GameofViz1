@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Game Of Thrones HeatMap</title>
+        <script type="text/javascript" src="lib/d3.v3.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+          
+            var ds =[];
+            var padding = 2;
+
+            var margin = { top: 40, right: 0, bottom: 100, left: 23 },
+              width = 700 - margin.left - margin.right,
+              height = 550 - margin.top - margin.bottom,
+              // buckets = 9,
+              colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"],
+              houses = ["Baratheon", "Greyjoy", "Lannister", "Martell", "Stark", "Targayen", "Tyrell"],
+              episodes = ["1", "2", "3", "4","5", "6", "7","8","9","10"],
+              numberOfAppearances = [0,2,4,5,7,11,18,25,32],
+              legendElementWidth = gridSize*2;
+            
+            d3.select("body")
+                .append('center')
+                .append("p")
+                .attr('style', 'font-size: 20px; font-family:Tahoma; font-weight: 600;transform: uppercase;')
+                .text("Game of Visualization")
+            var data = ["Season 1", "Season 2", "Season 3", "Season 4", "Season 5", "Season 6"]
+            var select = d3.select('body')
+                .append('center')
+                .append('select')
+                .attr('class','select')
+                .on('change',onchange)
+
+            var options = select
+                .selectAll('option')
+                .data(data).enter()
+                .append('option')
+                .text(function (d) { return d; });
+
+            var currentSeason = 1;
+
+            function onchange() {
+                currentSeason = d3.select('select').property('value').slice(7);
+                console.log(currentSeason);
+                d3.select("svg").remove();
+
+                dataUpdateAndDraw();
+                
+            };
+
+
+           var gridSize;
+
+            function dataUpdateAndDraw(){
+                    var svg  = d3.select("body")
+                            .append('center')
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    var heatmapWidth = 700 - margin.left - margin.right,
+                    heatmapHeight = 700 - margin.top - margin.bottom,
+                    gridSize = Math.floor(heatmapWidth / episodes.length);
+                    d3.csv("heatmap.csv", function(error,data){
+                    if(error){
+                        console.log(error);
+                    }
+                    else{
+                       
+                    
+                        ds = data.filter(function(elem){
+                            return elem.season == currentSeason;
+                        })
+                        // console.log(ds);
+                        finalds = [];
+                        ds.map(function(elem,index){
+                            finalds.push({
+                                xIndex: index,
+                                yIndex: 0,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Baratheon 
+
+                            });
+                             finalds.push({
+                                xIndex: index,
+                                yIndex: 1,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Greyjoy 
+
+                            });
+                              finalds.push({
+                                xIndex: index,
+                                yIndex: 2,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Lannister 
+
+                            });
+                            finalds.push({
+                                xIndex: index,
+                                yIndex: 3,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Martell 
+
+                            });
+                            finalds.push({
+                                xIndex: index,
+                                yIndex: 4,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Stark 
+
+                            });
+                            finalds.push({
+                                xIndex: index,
+                                yIndex: 5,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Targaryen 
+
+                            });
+                            finalds.push({
+                                xIndex: index,
+                                yIndex: 6,
+                                episode: elem.episode,
+                                season: elem.season,
+                                value : elem.Tyrell 
+
+                            });
+
+                            
+                        })
+                  
+
+                        svg.selectAll('rect')
+                        .data(finalds)
+                        .enter()           
+                        .append('rect')
+                        .attr('fill', function(d){
+                            var numOfAppearance = parseInt(d.value);
+                            // find index from number of Appearance array 
+                            // such that 
+
+                            for(var i = 0; i< numberOfAppearances.length; i++){
+                                if(numberOfAppearances[i] >  numOfAppearance){
+                                    return colors[i];
+                                }
+
+                            }
+                            return colors[numberOfAppearances.length - 1];
+                        })
+
+                        .attr("x", function(d,i){
+                            return parseInt(d.episode) * gridSize/1.2;
+                            // return d.x;
+
+                        })
+                        .attr("y", function(d,i){
+                            return (d.yIndex * gridSize/1.2);
+                            // return d.y;
+
+                        })
+                        .attr("width",gridSize/1.2 - padding)
+                        .attr("height",gridSize/1.2 - padding)
+
+
+
+                        svg.selectAll("lablesx")
+                            .data(episodes)
+                            .enter()
+                            .append("text")
+                            .text(function(d){ return d;})
+                            .attr({
+                                "text-anchor" : "middle",
+                                 x : function(d,i){
+                                        return (i + 1)*gridSize/1.2 + 28;
+                                    },
+
+                                 y : finalds[finalds.length - 1].yIndex * gridSize/1.2 + gridSize + 15,
+                                 "font-size": "15px",
+                                  "font-family": "Times New Roman"
+
+                        })
+                        svg.selectAll("EpisodesText")
+                            .data(episodes)
+                            .enter()
+                            .append("text")
+                            .text("Episodes")
+                            .attr({
+                                "text-anchor" : "middle",
+                                  x : (episodes.length + 1)*gridSize/1.2 + 30,
+                                  y : finalds[finalds.length - 1 ].yIndex * gridSize/1.2 + gridSize + 15,
+                                  "font-weight": 300,
+                                  "font-size": "15px",
+                                  "font-family": "Times New Roman"
+                                    
+                            })
+
+                        svg.selectAll("HousesText")
+                            .data(houses)
+                            .enter()
+                            .append("text")
+                            .text("Houses")
+                            .attr({
+                                "text-anchor" : "middle",
+                                  x : 10,
+                                  y : -20,
+                                  "font-weight": 300,
+                                  "font-size": "15px",
+                                  "font-family": "Times New Roman"
+                                    
+                            })
+
+                        svg.selectAll("labelsy")
+                            .data(houses)
+                            .enter()
+                            .append("text")
+                            .text(function(d){ return d;})
+                            .attr({
+                                "text-anchor" : "middle",
+                                  x : 10,
+                                  y : function(d,i){
+                                        return (i + 1)*gridSize/1.2 - 20 ;
+                                    },
+                                  "font-size": "15px",
+                                  "font-family": "Times New Roman"
+                        })
+
+                        svg.selectAll("AppearanceText")
+                            .data(numberOfAppearances)
+                            .enter()
+                            .append("text")
+                            .text("No of Apperances")
+                            .attr({
+                                "text-anchor" : "middle",
+                                  x : 120,
+                                  y : 450,
+                                  "font-weight": 200,
+                                  "font-size": "15px",
+                                  "font-family": "Times New Roman"
+                                    
+                            })
+
+                        svg.selectAll("AppearanceNumbers")
+                            .data(numberOfAppearances)
+                            .enter()
+                            .append("text")
+                            .text(function(d){ return d;})
+                            .attr({
+                                "text-anchor" : "middle",
+                                  x : function(d,i){
+                                        return (i + 1)*gridSize/1.25 + 28;
+                                    },
+                                  y : 480,
+                                  "font-size": "15px",
+                                  "font-family": "Times New Roman"
+                                  
+                                    
+                            })
+
+                        svg.selectAll("AppearanceColors")
+                        .data(colors)
+                        .enter()
+                        .append("rect")
+                        .text(function(d){ return d;})
+                        .attr({
+                            "text-anchor" : "middle",
+                              x : function(d,i){
+                                    return (i + 1)*gridSize/1.25;
+                                },
+                              y : 490,
+                              width: gridSize/1.25 - 2,
+                              height: gridSize/2.25 - 2,
+                              fill: function(d){
+                                 return d;
+                              }
+
+                              
+                                
+                        })
+                     
+                    }//else close
+                })//csv function close
+            }//function close
+
+            dataUpdateAndDraw();
+        </script>
+    </body>
+</html>     
